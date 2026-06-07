@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cluster-Tree Sort Benchmark</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            padding: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .control-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        label {
+            font-weight: bold;
+        }
+        .btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        .btn:hover { background-color: #2980b9; }
+        .btn.active { background-color: #27ae60; }
+        .btn-run {
+            background-color: #e67e22;
+            width: 100%;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .btn-run:hover { background-color: #d35400; }
+        .results {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-top: 15px;
+            padding: 10px;
+            background: #e8f4f8;
+            border-left: 5px solid #3498db;
+        }
+        .explanation {
+            font-size: 14px;
+            color: #555;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Custom Algorithm Benchmarker</h1>
+
+    <div class="card">
+        <h3>Step 1: Configure Dataset</h3>
+        <div class="control-group">
+            <label for="data-size">Data Size: <span id="size-val">5000</span></label>
+            <input type="range" id="data-size" min="100" max="25000" step="100" value="5000">
+            
+            <label>Data Type:</label>
+            <label><input type="radio" name="num-type" value="int" checked> Integers</label>
+            <label><input type="radio" name="num-type" value="float"> Floats</label>
+
+            <label>Data Context:</label>
+            <label><input type="radio" name="set-type" value="static" checked> Proactive (Static Set)</label>
+            <label><input type="radio" name="set-type" value="dynamic"> Reactive (Dynamic Stream)</label>
+        </div>
+        <button class="btn" onclick="generateData()">Generate New Dataset</button>
+        <span id="generation-status" style="margin-left:10px; font-style:italic; color:green;"></span>
+    </div>
+
+    <div class="card">
+        <h3>Step 2: Select Algorithm & Run</h3>
+        <div class="control-group">
+            <button class="btn algo-btn active" onclick="selectAlgo('clusterTree', this)">Your Cluster-Tree Sort</button>
+            <button class="btn algo-btn" onclick="selectAlgo('quickSort', this)">Quick Sort</button>
+            <button class="btn algo-btn" onclick="selectAlgo('insertionSort', this)">Insertion Sort</button>
+        </div>
+        <button class="btn btn-run" onclick="runBenchmark()">RUN BENCHMARK</button>
+
+        <div class="results" id="timer-display">Execution Time: 0.00 ms</div>
+    </div>
+
+    <div class="card explanation">
+        <h3>How Your Algorithm is Implemented Here:</h3>
+        <ul>
+            <li><strong>Proactive (Static):</strong> It checks the total count $N$ first, mathematically creates $\sqrt{N}$ bucket clusters across the data's range, assigns items instantly via division, and then sorts locally by scanning for the closest mathematical neighbor.</li>
+            <li><strong>Reactive (Dynamic):</strong> It mimics a data stream. It builds a map on the fly. If any single cluster cluster accumulates more than 1,000 items, it flags a "re-cluster trigger" to safely distribute the structural load.</li>
+        </ul>
+    </div>
+
+<script>
+    // Global Data Variables
+    let currentDataset = [];
+    let selectedAlgorithm = 'clusterTree';
+
+    // UI Updates
+    const sizeSlider = document.getElementById('data-size');
+    const sizeVal = document.getElementById('size-val');
+    sizeSlider.oninput = function() { sizeVal.innerHTML = this.value; };
+
+    // Generate Array Helper
+    function generateData() {
+        const size = parseInt(sizeSlider.value);
+        const isFloat = document.querySelector('input[name="num-type"]:checked').value === 'float';
+        currentDataset = [];
+
+        for(let i = 0; i < size; i++) {
+            let num = Math.random() * size;
+            currentDataset.push(isFloat ? num : Math.floor(num));
+        }
+        document.getElementById('generation-status').innerText = `Generated ${size} items!`;
+        setTimeout(() => document.getElementById('generation-status').innerText = "", 2000);
+    }
+
+    function selectAlgo(algo, element) {
+        selectedAlgorithm = algo;
+        document.querySelectorAll('.algo-btn').forEach(btn => btn.classList.remove('active'));
+        element.classList.add('active');
+    }
+
+    // --- YOUR ALGORITHM IMPLEMENTATION ---
+    function clusterTreeSort(arr, mode) {
+        if (arr.length <= 1) return arr;
+
+        let min = Math.min(...arr);
+        let max = Math.max(...arr);
+        let range = max - min;
+        if (range === 0) return arr;
+
+        let buckets = {};
+        let bucketSize;
+
+        if (mode === 'static') {
+            // Proactive setup: Calculate ideal clusters upfront
+            let k = Math.ceil(Math.sqrt(arr.length));
+            bucketSize = range / k;
+        } else {
+            // Reactive setup: Fixed width simulation that adapts if clusters overflow
+            bucketSize = 10; 
+        }
+
+        // Phase 1: Bucket Clustering Allocation
+        for (let num of arr) {
+            let bucketIdx = Math.floor((num - min) / bucketSize);
+            if (!buckets[bucketIdx]) buckets[bucketIdx] = [];
+            
+            buckets[bucketIdx].push(num);
+
+            // Reactive handling: If items hit a ceiling, adjust cluster boundary
+            if (mode === 'dynamic' && buckets[bucketIdx].length > 1000) {
+                bucketSize *= 0.9; // Arbitrary refinement to split future inputs tighter
+            }
+        }
+
+        // Phase 2: Local Neighbor Insertion Refinement
+        let sortedResult = [];
+        let sortedKeys = Object.keys(buckets).map(Number).sort((a,b) => a-b);
+
+        for (let key of sortedKeys) {
+            let bucket = buckets[key];
+            let localSorted = [];
+            
+            for (let num of bucket) {
+                if (localSorted.length === 0) {
+                    localSorted.push(num);
+                } else {
+                    // Find closest neighbor logic (|a - b|)
+                    let closestIdx = 0;
+                    let minDiff = Math.abs(num - localSorted[0]);
+                    
+                    for (let i = 1; i < localSorted.length; i++) {
+                        let diff = Math.abs(num - localSorted[i]);
+                        if (diff < minDiff) {
+                            minDiff = diff;
+                            closestIdx = i;
+                        }
+                    }
+                    // Insert relative to closest neighbor
+                    if (num < localSorted[closestIdx]) {
+                        localSorted.splice(closestIdx, 0, num);
+                    } else {
+                        localSorted.splice(closestIdx + 1, 0, num);
+                    }
+                }
+            }
+            sortedResult.push(...localSorted);
+        }
+        return sortedResult;
+    }
+
+    // --- STANDARD ALGORITHMS FOR COMPARISON ---
+    function nativeQuickSort(arr) {
+        if (arr.length <= 1) return arr;
+        let pivot = arr[Math.floor(arr.length / 2)];
+        let left = arr.filter(x => x < pivot);
+        let middle = arr.filter(x => x === pivot);
+        let right = arr.filter(x => x > pivot);
+        return [...nativeQuickSort(left), ...middle, ...nativeQuickSort(right)];
+    }
+
+    function insertionSort(arr) {
+        let a = [...arr];
+        for (let i = 1; i < a.length; i++) {
+            let key = a[i];
+            let j = i - 1;
+            while (j >= 0 && a[j] > key) {
+                a[j + 1] = a[j];
+                j = j - 1;
+            }
+            a[j + 1] = key;
+        }
+        return a;
+    }
+
+    // --- BENCHMARK ENGINE ---
+    function runBenchmark() {
+        if (currentDataset.length === 0) generateData();
+        
+        // Deep copy data so sorting doesn't manipulate the clean array
+        let dataCopy = [...currentDataset];
+        const mode = document.querySelector('input[name="set-type"]:checked').value;
+        
+        let t0 = performance.now();
+        
+        if (selectedAlgorithm === 'clusterTree') {
+            clusterTreeSort(dataCopy, mode);
+        } else if (selectedAlgorithm === 'quickSort') {
+            nativeQuickSort(dataCopy);
+        } else if (selectedAlgorithm === 'insertionSort') {
+            // Guard insertion sort from crashing browser on high elements
+            if (dataCopy.length > 15000) {
+                alert("Insertion sort is too slow for data sizes over 15k! Choose a lower value.");
+                return;
+            }
+            insertionSort(dataCopy);
+        }
+        
+        let t1 = performance.now();
+        let duration = (t1 - t0).toFixed(2);
+        
+        document.getElementById('timer-display').innerText = `Execution Time: ${duration} ms`;
+    }
+</script>
+</body>
+</html>
