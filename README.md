@@ -3,7 +3,7 @@
 
 > A custom cluster-tree algorithm shown in action with a live benchmark against the most common standard algorithms: Quick Sort and Insertion Sort.
 
-👉 **[CLICK HERE TO RUN THE LIVE BENCHMARK]([YOUR_GITHUB_PAGES_LINK_HERE](https://sighthough.github.io/cluster-tree-sort-benchmark/))**
+👉 **[CLICK HERE TO RUN THE LIVE BENCHMARK]([https://sighthough.github.io/cluster-tree-sort-benchmark/])**
 
 ---
 
