@@ -96,6 +96,7 @@
         <div class="control-group">
             <button class="btn algo-btn active" onclick="selectAlgo('clusterTree', this)">Your Cluster-Tree Sort</button>
             <button class="btn algo-btn" onclick="selectAlgo('quickSort', this)">Quick Sort</button>
+            <button class="btn algo-btn" onclick="selectAlgo('timSort', this)">TimSort (Native)</button>
             <button class="btn algo-btn" onclick="selectAlgo('insertionSort', this)">Insertion Sort</button>
         </div>
         <button class="btn btn-run" onclick="runBenchmark()">RUN BENCHMARK</button>
@@ -107,7 +108,7 @@
         <h3>How Your Algorithm is Implemented Here:</h3>
         <ul>
             <li><strong>Proactive (Static):</strong> It checks the total count $N$ first, mathematically creates $\sqrt{N}$ bucket clusters across the data's range, assigns items instantly via division, and then sorts locally by scanning for the closest mathematical neighbor.</li>
-            <li><strong>Reactive (Dynamic):</strong> It mimics a data stream. It builds a map on the fly. If any single cluster cluster accumulates more than 1,000 items, it flags a "re-cluster trigger" to safely distribute the structural load.</li>
+            <li><strong>Reactive (Dynamic):</strong> It mimics a data stream. It builds a map on the fly. If any single cluster accumulates more than 1,000 items, it flags a "re-cluster trigger" to safely distribute the structural load.</li>
         </ul>
     </div>
 
@@ -249,6 +250,9 @@
             clusterTreeSort(dataCopy, mode);
         } else if (selectedAlgorithm === 'quickSort') {
             nativeQuickSort(dataCopy);
+        } else if (selectedAlgorithm === 'timSort') {
+            // Invokes the browser's native highly-optimized TimSort implementation
+            dataCopy.sort((a, b) => a - b);
         } else if (selectedAlgorithm === 'insertionSort') {
             // Guard insertion sort from crashing browser on high elements
             if (dataCopy.length > 15000) {
