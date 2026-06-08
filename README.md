@@ -11,6 +11,10 @@ Be sure to click on generate new data set every time you change a thing and run 
 
 ---
 
+This was made by me and googles gemini ai, 
+to see the whole chat about it and perhaps be inspired or help with 
+understanding how it works and how we came up to it [here is the link to the chat](https://gemini.google.com/share/1f99f25ee602)
+
 ## How It Works
 
 Cluster-Tree Sort operates as a two-stage pipeline to achieve highly efficient sorting, approaching $O(n)$ linear time complexity under uniform data distribution:
