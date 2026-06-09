@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cluster-Tree Sort Benchmark</title>
+    <title>Ultimate Cluster-Tree Sort Benchmark</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f4f7f6;
             color: #333;
             padding: 20px;
-            max-width: 900px;
+            max-width: 1000px;
             margin: 0 auto;
         }
         h1 {
@@ -31,6 +31,13 @@
             align-items: center;
             margin-bottom: 15px;
         }
+        .radio-set {
+            display: flex;
+            gap: 10px;
+            background: #eee;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
         label {
             font-weight: bold;
         }
@@ -38,10 +45,10 @@
             background-color: #3498db;
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 10px 15px;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             transition: background 0.2s;
         }
         .btn:hover { background-color: #2980b9; }
@@ -67,11 +74,26 @@
             color: #555;
             line-height: 1.5;
         }
+        .notes-section {
+            background: #fffdf0;
+            border-left: 5px solid #f1c40f;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+        }
+        pre {
+            background: #272822;
+            color: #f8f8f2;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
 
-    <h1>Custom Algorithm Benchmarker</h1>
+    <h1>Ultimate Algorithm Benchmarker</h1>
 
     <div class="card">
         <h3>Step 1: Configure Dataset</h3>
@@ -80,12 +102,22 @@
             <input type="range" id="data-size" min="100" max="25000" step="100" value="5000">
             
             <label>Data Type:</label>
-            <label><input type="radio" name="num-type" value="int" checked> Integers</label>
-            <label><input type="radio" name="num-type" value="float"> Floats</label>
+            <div class="radio-set">
+                <label><input type="radio" name="num-type" value="int" checked> Integers</label>
+                <label><input type="radio" name="num-type" value="float"> Floats</label>
+            </div>
 
-            <label>Data Context:</label>
-            <label><input type="radio" name="set-type" value="static" checked> Proactive (Static Set)</label>
-            <label><input type="radio" name="set-type" value="dynamic"> Reactive (Dynamic Stream)</label>
+            <label>Distribution Shape:</label>
+            <div class="radio-set">
+                <label><input type="radio" name="dist-type" value="uniform" checked> Uniform (Flat)</label>
+                <label><input type="radio" name="dist-type" value="skewed"> Skewed (Clumpy Hotspots)</label>
+            </div>
+
+            <label>Context:</label>
+            <div class="radio-set">
+                <label><input type="radio" name="set-type" value="static" checked> Proactive (Static)</label>
+                <label><input type="radio" name="set-type" value="dynamic"> Reactive (Stream)</label>
+            </div>
         </div>
         <button class="btn" onclick="generateData()">Generate New Dataset</button>
         <span id="generation-status" style="margin-left:10px; font-style:italic; color:green;"></span>
@@ -94,9 +126,13 @@
     <div class="card">
         <h3>Step 2: Select Algorithm & Run</h3>
         <div class="control-group">
-            <button class="btn algo-btn active" onclick="selectAlgo('clusterTree', this)">Your Cluster-Tree Sort</button>
-            <button class="btn algo-btn" onclick="selectAlgo('quickSort', this)">Quick Sort</button>
+            <button class="btn algo-btn active" onclick="selectAlgo('clusterTree', this)">Evolved Cluster-Tree</button>
             <button class="btn algo-btn" onclick="selectAlgo('timSort', this)">TimSort (Native)</button>
+            <button class="btn algo-btn" onclick="selectAlgo('quickSort', this)">Quick Sort</button>
+            <button class="btn algo-btn" onclick="selectAlgo('mergeSort', this)">Merge Sort</button>
+            <button class="btn algo-btn" onclick="selectAlgo('heapSort', this)">Heap Sort</button>
+            <button class="btn algo-btn" onclick="selectAlgo('shellSort', this)">Shell Sort</button>
+            <button class="btn algo-btn" onclick="selectAlgo('radixSort', this)">Radix Sort (LSD)</button>
             <button class="btn algo-btn" onclick="selectAlgo('insertionSort', this)">Insertion Sort</button>
         </div>
         <button class="btn btn-run" onclick="runBenchmark()">RUN BENCHMARK</button>
@@ -105,31 +141,81 @@
     </div>
 
     <div class="card explanation">
-        <h3>How Your Algorithm is Implemented Here:</h3>
+        <h3>Active Field Diagnostics:</h3>
         <ul>
-            <li><strong>Proactive (Static):</strong> It checks the total count $N$ first, mathematically creates $\sqrt{N}$ bucket clusters across the data's range, assigns items instantly via division, and then sorts locally by scanning for the closest mathematical neighbor.</li>
-            <li><strong>Reactive (Dynamic):</strong> It mimics a data stream. It builds a map on the fly. If any single cluster accumulates more than 1,000 items, it flags a "re-cluster trigger" to safely distribute the structural load.</li>
+            <li><strong>Evolved Cluster-Tree (Hybrid Architecture):</strong> Dynamically maps features and fragments oversized clusters into recursive nested mathematical sub-trees to guard against $O(n^2)$ execution collapses.</li>
+            <li><strong>Clumpy Hotspots Mode:</strong> Tests how distribution-based sorts collapse when data is intentionally compressed into a narrow range, inducing bucket collisions.</li>
         </ul>
     </div>
 
+    <div class="card notes-section">
+        <h3>📝 How To Use This Algorithm In Your Own Projects</h3>
+        <p>To drop this algorithm into external codebases, copy the self-contained function block below. It does not modify your input arrays natively.</p>
+        <pre><code>// Usage Example:
+// const sortedData = optimizedClusterTreeSort([4.2, 1.5, 9.9, 0.3, 3.14]);
+
+function optimizedClusterTreeSort(arr, maxBucketCapacity = 64) {
+    if (arr.length <= 1) return arr;
+    let min = arr[0], max = arr[0];
+    for (let i = 1; i < arr.length; i++) {
+        if (arr[i] < min) min = arr[i];
+        if (arr[i] > max) max = arr[i];
+    }
+    let range = max - min;
+    if (range === 0) return [...arr]; 
+
+    let k = Math.ceil(Math.sqrt(arr.length));
+    let bucketSize = range / k;
+    let buckets = Array.from({ length: k }, () => []);
+
+    for (let i = 0; i < arr.length; i++) {
+        let num = arr[i];
+        let bucketIdx = Math.floor((num - min) / bucketSize);
+        if (bucketIdx >= k) bucketIdx = k - 1;
+        buckets[bucketIdx].push(num);
+    }
+
+    let sortedResult = [];
+    for (let i = 0; i < k; i++) {
+        let bucket = buckets[i];
+        if (bucket.length === 0) continue;
+        if (bucket.length <= maxBucketCapacity) {
+            bucket.sort((a, b) => a - b);
+            for(let j = 0; j < bucket.length; j++) sortedResult.push(bucket[j]);
+        } else {
+            let subSorted = optimizedClusterTreeSort(bucket, maxBucketCapacity);
+            for(let j = 0; j < subSorted.length; j++) sortedResult.push(subSorted[j]);
+        }
+    }
+    return sortedResult;
+}</code></pre>
+    </div>
+
 <script>
-    // Global Data Variables
     let currentDataset = [];
     let selectedAlgorithm = 'clusterTree';
 
-    // UI Updates
     const sizeSlider = document.getElementById('data-size');
     const sizeVal = document.getElementById('size-val');
     sizeSlider.oninput = function() { sizeVal.innerHTML = this.value; };
 
-    // Generate Array Helper
     function generateData() {
         const size = parseInt(sizeSlider.value);
         const isFloat = document.querySelector('input[name="num-type"]:checked').value === 'float';
+        const distType = document.querySelector('input[name="dist-type"]:checked').value;
         currentDataset = [];
 
         for(let i = 0; i < size; i++) {
-            let num = Math.random() * size;
+            let num;
+            if (distType === 'uniform') {
+                num = Math.random() * size;
+            } else {
+                let u = 0, v = 0;
+                while(u === 0) u = Math.random(); 
+                while(v === 0) v = Math.random();
+                let numStd = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+                num = (numStd * (size / 10)) + (size / 2);
+            }
             currentDataset.push(isFloat ? num : Math.floor(num));
         }
         document.getElementById('generation-status').innerText = `Generated ${size} items!`;
@@ -142,77 +228,48 @@
         element.classList.add('active');
     }
 
-    // --- YOUR ALGORITHM IMPLEMENTATION ---
-    function clusterTreeSort(arr, mode) {
+    // --- EVOLVED CLUSTER-TREE SORT (HYBRID GENERATION) ---
+    function optimizedClusterTreeSort(arr, maxBucketCapacity = 64) {
         if (arr.length <= 1) return arr;
 
-        let min = Math.min(...arr);
-        let max = Math.max(...arr);
+        let min = arr[0], max = arr[0];
+        for (let i = 1; i < arr.length; i++) {
+            if (arr[i] < min) min = arr[i];
+            if (arr[i] > max) max = arr[i];
+        }
         let range = max - min;
-        if (range === 0) return arr;
+        if (range === 0) return [...arr]; 
 
-        let buckets = {};
-        let bucketSize;
+        let k = Math.ceil(Math.sqrt(arr.length));
+        let bucketSize = range / k;
+        let buckets = Array.from({ length: k }, () => []);
 
-        if (mode === 'static') {
-            // Proactive setup: Calculate ideal clusters upfront
-            let k = Math.ceil(Math.sqrt(arr.length));
-            bucketSize = range / k;
-        } else {
-            // Reactive setup: Fixed width simulation that adapts if clusters overflow
-            bucketSize = 10; 
-        }
-
-        // Phase 1: Bucket Clustering Allocation
-        for (let num of arr) {
+        for (let i = 0; i < arr.length; i++) {
+            let num = arr[i];
             let bucketIdx = Math.floor((num - min) / bucketSize);
-            if (!buckets[bucketIdx]) buckets[bucketIdx] = [];
-            
+            if (bucketIdx >= k) bucketIdx = k - 1; 
             buckets[bucketIdx].push(num);
-
-            // Reactive handling: If items hit a ceiling, adjust cluster boundary
-            if (mode === 'dynamic' && buckets[bucketIdx].length > 1000) {
-                bucketSize *= 0.9; // Arbitrary refinement to split future inputs tighter
-            }
         }
 
-        // Phase 2: Local Neighbor Insertion Refinement
         let sortedResult = [];
-        let sortedKeys = Object.keys(buckets).map(Number).sort((a,b) => a-b);
+        for (let i = 0; i < k; i++) {
+            let bucket = buckets[i];
+            if (bucket.length === 0) continue;
 
-        for (let key of sortedKeys) {
-            let bucket = buckets[key];
-            let localSorted = [];
-            
-            for (let num of bucket) {
-                if (localSorted.length === 0) {
-                    localSorted.push(num);
-                } else {
-                    // Find closest neighbor logic (|a - b|)
-                    let closestIdx = 0;
-                    let minDiff = Math.abs(num - localSorted[0]);
-                    
-                    for (let i = 1; i < localSorted.length; i++) {
-                        let diff = Math.abs(num - localSorted[i]);
-                        if (diff < minDiff) {
-                            minDiff = diff;
-                            closestIdx = i;
-                        }
-                    }
-                    // Insert relative to closest neighbor
-                    if (num < localSorted[closestIdx]) {
-                        localSorted.splice(closestIdx, 0, num);
-                    } else {
-                        localSorted.splice(closestIdx + 1, 0, num);
-                    }
-                }
+            if (bucket.length <= maxBucketCapacity) {
+                // Leaf processing threshold
+                bucket.sort((a, b) => a - b);
+                for(let j = 0; j < bucket.length; j++) sortedResult.push(bucket[j]);
+            } else {
+                // Recursive tree clustering split
+                let subSorted = optimizedClusterTreeSort(bucket, maxBucketCapacity);
+                for(let j = 0; j < subSorted.length; j++) sortedResult.push(subSorted[j]);
             }
-            sortedResult.push(...localSorted);
         }
         return sortedResult;
     }
 
-    // --- STANDARD ALGORITHMS FOR COMPARISON ---
+    // --- QUICK SORT ---
     function nativeQuickSort(arr) {
         if (arr.length <= 1) return arr;
         let pivot = arr[Math.floor(arr.length / 2)];
@@ -222,6 +279,100 @@
         return [...nativeQuickSort(left), ...middle, ...nativeQuickSort(right)];
     }
 
+    // --- MERGE SORT ---
+    function mergeSort(arr) {
+        if (arr.length <= 1) return arr;
+        const mid = Math.floor(arr.length / 2);
+        const left = mergeSort(arr.slice(0, mid));
+        const right = mergeSort(arr.slice(mid));
+        
+        let result = [], i = 0, j = 0;
+        while (i < left.length && j < right.length) {
+            if (left[i] < right[j]) result.push(left[i++]);
+            else result.push(right[j++]);
+        }
+        return result.concat(left.slice(i)).concat(right.slice(j));
+    }
+
+    // --- HEAP SORT ---
+    function heapSort(arr) {
+        let a = [...arr];
+        let l = a.length;
+        
+        const heapify = (array, index, heapSize) => {
+            let max = index;
+            let left = 2 * index + 1;
+            let right = 2 * index + 2;
+            if (left < heapSize && array[left] > array[max]) max = left;
+            if (right < heapSize && array[right] > array[max]) max = right;
+            if (max !== index) {
+                let temp = array[index];
+                array[index] = array[max];
+                array[max] = temp;
+                heapify(array, max, heapSize);
+            }
+        };
+
+        for (let i = Math.floor(l / 2) - 1; i >= 0; i--) heapify(a, i, l);
+        for (let i = l - 1; i > 0; i--) {
+            let temp = a[0];
+            a[0] = a[i];
+            a[i] = temp;
+            heapify(a, 0, i);
+        }
+        return a;
+    }
+
+    // --- SHELL SORT ---
+    function shellSort(arr) {
+        let a = [...arr];
+        let n = a.length;
+        for (let gap = Math.floor(n/2); gap > 0; gap = Math.floor(gap/2)) {
+            for (let i = gap; i < n; i++) {
+                let temp = a[i];
+                let j;
+                for (j = i; j >= gap && a[j - gap] > temp; j -= gap) {
+                    a[j] = a[j - gap];
+                }
+                a[j] = temp;
+            }
+        }
+        return a;
+    }
+
+    // --- RADIX SORT (LSD) ---
+    function radixSort(arr) {
+        let isFloat = arr.some(x => !Number.isInteger(x));
+        let buf = new ArrayBuffer(4);
+        let f32 = new Float32Array(buf);
+        let u32 = new Uint32Array(buf);
+
+        let transform = isFloat ? (num) => {
+            f32[0] = num;
+            let bits = u32[0];
+            return (bits & 0x80000000) ? ~bits : bits | 0x80000000;
+        } : (num) => num;
+
+        let temp = arr.map(x => ({ orig: x, key: transform(x) }));
+        let minKey = temp.reduce((min, x) => x.key < min ? x.key : min, temp[0]?.key || 0);
+        
+        if(minKey < 0) {
+            temp.forEach(x => x.key -= minKey);
+        }
+
+        for (let shift = 0; shift < 32; shift += 8) {
+            let buckets = Array.from({length: 256}, () => []);
+            for (let i = 0; i < temp.length; i++) {
+                let digit = (temp[i].key >> shift) & 0xFF;
+                buckets[digit].push(temp[i]);
+            }
+            temp = [].concat(...buckets);
+        }
+
+        return temp.map(x => x.orig);
+    }
+
+    // --- INSERTION SORT ---
     function insertionSort(arr) {
         let a = [...arr];
         for (let i = 1; i < a.length; i++) {
@@ -239,33 +390,37 @@
     // --- BENCHMARK ENGINE ---
     function runBenchmark() {
         if (currentDataset.length === 0) generateData();
-        
-        // Deep copy data so sorting doesn't manipulate the clean array
         let dataCopy = [...currentDataset];
-        const mode = document.querySelector('input[name="set-type"]:checked').value;
         
+        if (['quickSort', 'mergeSort', 'heapSort', 'shellSort', 'insertionSort'].includes(selectedAlgorithm) && dataCopy.length > 15000) {
+            if (selectedAlgorithm === 'insertionSort') {
+                alert("Insertion sort is too slow for data sizes over 15k!");
+                return;
+            }
+        }
+
         let t0 = performance.now();
         
         if (selectedAlgorithm === 'clusterTree') {
-            clusterTreeSort(dataCopy, mode);
+            optimizedClusterTreeSort(dataCopy);
         } else if (selectedAlgorithm === 'quickSort') {
             nativeQuickSort(dataCopy);
+        } else if (selectedAlgorithm === 'mergeSort') {
+            mergeSort(dataCopy);
+        } else if (selectedAlgorithm === 'heapSort') {
+            heapSort(dataCopy);
+        } else if (selectedAlgorithm === 'shellSort') {
+            shellSort(dataCopy);
+        } else if (selectedAlgorithm === 'radixSort') {
+            radixSort(dataCopy);
         } else if (selectedAlgorithm === 'timSort') {
-            // Invokes the browser's native highly-optimized TimSort implementation
             dataCopy.sort((a, b) => a - b);
         } else if (selectedAlgorithm === 'insertionSort') {
-            // Guard insertion sort from crashing browser on high elements
-            if (dataCopy.length > 15000) {
-                alert("Insertion sort is too slow for data sizes over 15k! Choose a lower value.");
-                return;
-            }
             insertionSort(dataCopy);
         }
         
         let t1 = performance.now();
-        let duration = (t1 - t0).toFixed(2);
-        
-        document.getElementById('timer-display').innerText = `Execution Time: ${duration} ms`;
+        document.getElementById('timer-display').innerText = `Execution Time: ${(t1 - t0).toFixed(2)} ms`;
     }
 </script>
 </body>
