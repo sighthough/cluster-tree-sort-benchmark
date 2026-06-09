@@ -14,7 +14,7 @@ Be sure to click on generate new data set every time you change a thing and run 
 
 This was made by me and googles gemini ai, 
 to see the whole chat about it and perhaps be inspired or help with 
-understanding how it works and how we came up to it [here is the link to the chat](https://gemini.google.com/share/1f99f25ee602)
+understanding how it works and how we came up to it [here is the link to the chat](https://gemini.google.com/share/1f99f25ee602) [and the latest evolution of it](https://gemini.google.com/share/9e749eb91c6e)
 
 ## How It Works
 
