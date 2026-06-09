@@ -6,6 +6,7 @@
 👉 **[CLICK HERE TO RUN THE LIVE BENCHMARK](https://sighthough.github.io/cluster-tree-sort-benchmark/)**
 
 Faster than quicksort and timsort at Reactive dynamic stream integers and generally in floating point :3!
+almost as fast as LSD with less memory usage
 
 Be sure to click on generate new data set every time you change a thing and run it 
 
