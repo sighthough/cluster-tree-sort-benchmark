@@ -6,8 +6,7 @@
 👉 **[CLICK HERE TO RUN THE LIVE BENCHMARK](https://sighthough.github.io/cluster-tree-sort-benchmark/)**
 
 
-This was made by me and googles gemini ai, 
-
+check the index file towards the bottom for cuda and java implementation
 
 
 ---
