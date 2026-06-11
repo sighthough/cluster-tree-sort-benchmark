@@ -65,29 +65,19 @@
             font-weight: bold;
             color: #2c3e50;
             margin-top: 15px;
-            padding: 10px;
+            padding: 15px;
             background: #e8f4f8;
-            border-left: 5px solid #3498db;
+            border-left: 5px solid #27ae60;
+        }
+        .metric-line {
+            margin: 5px 0;
+            font-family: monospace;
+            font-size: 16px;
         }
         .explanation {
             font-size: 14px;
             color: #555;
             line-height: 1.5;
-        }
-        .notes-section {
-            background: #fffdf0;
-            border-left: 5px solid #f1c40f;
-            padding: 15px;
-            margin-top: 20px;
-            border-radius: 4px;
-        }
-        pre {
-            background: #272822;
-            color: #f8f8f2;
-            padding: 10px;
-            border-radius: 4px;
-            overflow-x: auto;
-            font-size: 12px;
         }
     </style>
 </head>
@@ -126,7 +116,7 @@
     <div class="card">
         <h3>Step 2: Select Algorithm & Run</h3>
         <div class="control-group">
-            <button class="btn algo-btn active" onclick="selectAlgo('clusterTree', this)">Evolved Cluster-Tree</button>
+            <button class="btn algo-btn active" onclick="selectAlgo('clusterTree', this)">Your Cluster-Tree (Pure Power-of-2)</button>
             <button class="btn algo-btn" onclick="selectAlgo('timSort', this)">TimSort (Native)</button>
             <button class="btn algo-btn" onclick="selectAlgo('quickSort', this)">Quick Sort</button>
             <button class="btn algo-btn" onclick="selectAlgo('mergeSort', this)">Merge Sort</button>
@@ -137,63 +127,32 @@
         </div>
         <button class="btn btn-run" onclick="runBenchmark()">RUN BENCHMARK</button>
 
-        <div class="results" id="timer-display">Execution Time: 0.00 ms</div>
-    </div>
-
-    <div class="card explanation">
-        <h3>Active Field Diagnostics:</h3>
-        <ul>
-            <li><strong>Evolved Cluster-Tree (Hybrid Architecture):</strong> Dynamically maps features and fragments oversized clusters into recursive nested mathematical sub-trees to guard against $O(n^2)$ execution collapses.</li>
-            <li><strong>Clumpy Hotspots Mode:</strong> Tests how distribution-based sorts collapse when data is intentionally compressed into a narrow range, inducing bucket collisions.</li>
-        </ul>
-    </div>
-
-    <div class="card notes-section">
-        <h3>📝 How To Use This Algorithm In Your Own Projects</h3>
-        <p>To drop this algorithm into external codebases, copy the self-contained function block below. It does not modify your input arrays natively.</p>
-        <pre><code>// Usage Example:
-// const sortedData = optimizedClusterTreeSort([4.2, 1.5, 9.9, 0.3, 3.14]);
-
-function optimizedClusterTreeSort(arr, maxBucketCapacity = 64) {
-    if (arr.length <= 1) return arr;
-    let min = arr[0], max = arr[0];
-    for (let i = 1; i < arr.length; i++) {
-        if (arr[i] < min) min = arr[i];
-        if (arr[i] > max) max = arr[i];
-    }
-    let range = max - min;
-    if (range === 0) return [...arr]; 
-
-    let k = Math.ceil(Math.sqrt(arr.length));
-    let bucketSize = range / k;
-    let buckets = Array.from({ length: k }, () => []);
-
-    for (let i = 0; i < arr.length; i++) {
-        let num = arr[i];
-        let bucketIdx = Math.floor((num - min) / bucketSize);
-        if (bucketIdx >= k) bucketIdx = k - 1;
-        buckets[bucketIdx].push(num);
-    }
-
-    let sortedResult = [];
-    for (let i = 0; i < k; i++) {
-        let bucket = buckets[i];
-        if (bucket.length === 0) continue;
-        if (bucket.length <= maxBucketCapacity) {
-            bucket.sort((a, b) => a - b);
-            for(let j = 0; j < bucket.length; j++) sortedResult.push(bucket[j]);
-        } else {
-            let subSorted = optimizedClusterTreeSort(bucket, maxBucketCapacity);
-            for(let j = 0; j < subSorted.length; j++) sortedResult.push(subSorted[j]);
-        }
-    }
-    return sortedResult;
-}</code></pre>
+        <div class="results" id="timer-display">
+            <div class="metric-line" style="font-weight: bold; color: #27ae60; font-size: 19px; margin-bottom: 5px;">
+                ⚡ Physical Hardware Runtime: <span id="real-time">0.00</span> ms
+            </div>
+            <div class="metric-line" style="font-weight: bold; color: #d35400; font-size: 19px; margin-bottom: 10px;">
+                ⏱️ Standardized Core Run-Time: <span id="m-time">0.00000</span> ms
+            </div>
+            <div class="metric-line" style="font-weight: bold; color: #8e44ad; font-size: 16px; margin-bottom: 10px;">
+                🔢 Active Buckets Allocated: <span id="active-buckets">0</span> (Power of 2)
+            </div>
+            <hr style="border: 0; border-top: 1px solid #ccc; margin: 10px 0;">
+            <div class="metric-line">➡️ Comparisons / Key-Inspections: <span id="m-comp">0</span></div>
+            <div class="metric-line">➡️ Array Swaps / Writes / Allocations: <span id="m-write">0</span></div>
+            <div class="metric-line" style="font-weight: bold; color: #1e3799;">🔥 Total Structural Operations: <span id="m-total">0</span></div>
+        </div>
     </div>
 
 <script>
     let currentDataset = [];
     let selectedAlgorithm = 'clusterTree';
+    let lastAllocatedBuckets = 0;
+
+    let opsCount = {
+        comparisons: 0,
+        writes: 0
+    };
 
     const sizeSlider = document.getElementById('data-size');
     const sizeVal = document.getElementById('size-val');
@@ -228,43 +187,86 @@ function optimizedClusterTreeSort(arr, maxBucketCapacity = 64) {
         element.classList.add('active');
     }
 
-    // --- EVOLVED CLUSTER-TREE SORT (HYBRID GENERATION) ---
-    function optimizedClusterTreeSort(arr, maxBucketCapacity = 64) {
-        if (arr.length <= 1) return arr;
-
-        let min = arr[0], max = arr[0];
-        for (let i = 1; i < arr.length; i++) {
+    // --- PURE POWER-OF-2 CLUSTER-TREE SORT ---
+    function clusterTreeSort(arr, mode) {
+        if (arr.length <= 1) {
+            lastAllocatedBuckets = 0;
+            return arr;
+        }
+        
+        opsCount.comparisons += arr.length;
+        let min = arr[0];
+        let max = arr[0];
+        for(let i = 1; i < arr.length; i++) {
             if (arr[i] < min) min = arr[i];
             if (arr[i] > max) max = arr[i];
         }
+        
         let range = max - min;
-        if (range === 0) return [...arr]; 
+        if (range === 0) {
+            lastAllocatedBuckets = 0;
+            return arr;
+        }
 
-        let k = Math.ceil(Math.sqrt(arr.length));
-        let bucketSize = range / k;
-        let buckets = Array.from({ length: k }, () => []);
+        // Determine raw capacity targets
+        let targetCount = mode === 'static' ? Math.ceil(Math.sqrt(arr.length)) : Math.ceil(range / 15);
+        
+        // Mathematically lock the bucket count strictly to a Power of 2 (2, 4, 8, 16, 32, 64, 128, etc.)
+        let BUCKETS_COUNT = Math.pow(2, Math.ceil(Math.log2(targetCount)));
+        if (BUCKETS_COUNT < 2) BUCKETS_COUNT = 2; // Floor safety
+        
+        lastAllocatedBuckets = BUCKETS_COUNT; // Pass back to display card
 
-        for (let i = 0; i < arr.length; i++) {
-            let num = arr[i];
+        let buckets = Array.from({ length: BUCKETS_COUNT }, () => []);
+        opsCount.writes += BUCKETS_COUNT;
+
+        let bucketSize = range / BUCKETS_COUNT;
+
+        // Distribute elements into the power-of-2 lanes
+        for (let num of arr) {
             let bucketIdx = Math.floor((num - min) / bucketSize);
-            if (bucketIdx >= k) bucketIdx = k - 1; 
+            if (bucketIdx >= BUCKETS_COUNT) bucketIdx = BUCKETS_COUNT - 1;
+            if (bucketIdx < 0) bucketIdx = 0;
+            
             buckets[bucketIdx].push(num);
+            opsCount.writes++;
         }
 
         let sortedResult = [];
-        for (let i = 0; i < k; i++) {
-            let bucket = buckets[i];
-            if (bucket.length === 0) continue;
 
-            if (bucket.length <= maxBucketCapacity) {
-                // Leaf processing threshold
-                bucket.sort((a, b) => a - b);
-                for(let j = 0; j < bucket.length; j++) sortedResult.push(bucket[j]);
-            } else {
-                // Recursive tree clustering split
-                let subSorted = optimizedClusterTreeSort(bucket, maxBucketCapacity);
-                for(let j = 0; j < subSorted.length; j++) sortedResult.push(subSorted[j]);
+        // Run local closest-match sorting mechanics within each lane
+        for (let b = 0; b < BUCKETS_COUNT; b++) {
+            let bucket = buckets[b];
+            let localSorted = [];
+            
+            for (let num of bucket) {
+                if (localSorted.length === 0) {
+                    localSorted.push(num);
+                    opsCount.writes++;
+                } else {
+                    let closestIdx = 0;
+                    let minDiff = Math.abs(num - localSorted[0]);
+                    opsCount.comparisons++;
+                    
+                    for (let i = 1; i < localSorted.length; i++) {
+                        let diff = Math.abs(num - localSorted[i]);
+                        opsCount.comparisons++;
+                        if (diff < minDiff) {
+                            minDiff = diff;
+                            closestIdx = i;
+                        }
+                    }
+                    opsCount.comparisons++;
+                    if (num < localSorted[closestIdx]) {
+                        localSorted.splice(closestIdx, 0, num);
+                    } else {
+                        localSorted.splice(closestIdx + 1, 0, num);
+                    }
+                    opsCount.writes += (localSorted.length - closestIdx);
+                }
             }
+            sortedResult.push(...localSorted);
+            opsCount.writes += localSorted.length;
         }
         return sortedResult;
     }
@@ -273,9 +275,21 @@ function optimizedClusterTreeSort(arr, maxBucketCapacity = 64) {
     function nativeQuickSort(arr) {
         if (arr.length <= 1) return arr;
         let pivot = arr[Math.floor(arr.length / 2)];
-        let left = arr.filter(x => x < pivot);
-        let middle = arr.filter(x => x === pivot);
-        let right = arr.filter(x => x > pivot);
+        
+        let left = [], middle = [], right = [];
+        for(let i = 0; i < arr.length; i++) {
+            opsCount.comparisons++;
+            if (arr[i] < pivot) {
+                left.push(arr[i]);
+                opsCount.writes++;
+            } else if (arr[i] === pivot) {
+                middle.push(arr[i]);
+                opsCount.writes++;
+            } else {
+                right.push(arr[i]);
+                opsCount.writes++;
+            }
+        }
         return [...nativeQuickSort(left), ...middle, ...nativeQuickSort(right)];
     }
 
@@ -288,10 +302,18 @@ function optimizedClusterTreeSort(arr, maxBucketCapacity = 64) {
         
         let result = [], i = 0, j = 0;
         while (i < left.length && j < right.length) {
-            if (left[i] < right[j]) result.push(left[i++]);
-            else result.push(right[j++]);
+            opsCount.comparisons++;
+            if (left[i] < right[j]) {
+                result.push(left[i++]);
+                opsCount.writes++;
+            } else {
+                result.push(right[j++]);
+                opsCount.writes++;
+            }
         }
-        return result.concat(left.slice(i)).concat(right.slice(j));
+        while(i < left.length) { result.push(left[i++]); opsCount.writes++; }
+        while(j < right.length) { result.push(right[j++]); opsCount.writes++; }
+        return result;
     }
 
     // --- HEAP SORT ---
@@ -303,12 +325,20 @@ function optimizedClusterTreeSort(arr, maxBucketCapacity = 64) {
             let max = index;
             let left = 2 * index + 1;
             let right = 2 * index + 2;
-            if (left < heapSize && array[left] > array[max]) max = left;
-            if (right < heapSize && array[right] > array[max]) max = right;
+            
+            if (left < heapSize) {
+                opsCount.comparisons++;
+                if (array[left] > array[max]) max = left;
+            }
+            if (right < heapSize) {
+                opsCount.comparisons++;
+                if (array[right] > array[max]) max = right;
+            }
             if (max !== index) {
                 let temp = array[index];
                 array[index] = array[max];
                 array[max] = temp;
+                opsCount.writes += 2;
                 heapify(array, max, heapSize);
             }
         };
@@ -318,6 +348,7 @@ function optimizedClusterTreeSort(arr, maxBucketCapacity = 64) {
             let temp = a[0];
             a[0] = a[i];
             a[i] = temp;
+            opsCount.writes += 2;
             heapify(a, 0, i);
         }
         return a;
@@ -331,10 +362,17 @@ function optimizedClusterTreeSort(arr, maxBucketCapacity = 64) {
             for (let i = gap; i < n; i++) {
                 let temp = a[i];
                 let j;
-                for (j = i; j >= gap && a[j - gap] > temp; j -= gap) {
-                    a[j] = a[j - gap];
+                for (j = i; j >= gap; j -= gap) {
+                    opsCount.comparisons++;
+                    if (a[j - gap] > temp) {
+                        a[j] = a[j - gap];
+                        opsCount.writes++;
+                    } else {
+                        break;
+                    }
                 }
                 a[j] = temp;
+                opsCount.writes++;
             }
         }
         return a;
@@ -353,18 +391,32 @@ function optimizedClusterTreeSort(arr, maxBucketCapacity = 64) {
             return (bits & 0x80000000) ? ~bits : bits | 0x80000000;
         } : (num) => num;
 
-        let temp = arr.map(x => ({ orig: x, key: transform(x) }));
-        let minKey = temp.reduce((min, x) => x.key < min ? x.key : min, temp[0]?.key || 0);
+        let temp = arr.map(x => {
+            opsCount.writes++;
+            return { orig: x, key: transform(x) };
+        });
+        
+        let minKey = temp[0]?.key || 0;
+        for(let i = 1; i < temp.length; i++) {
+            opsCount.comparisons++;
+            if(temp[i].key < minKey) minKey = temp[i].key;
+        }
         
         if(minKey < 0) {
-            temp.forEach(x => x.key -= minKey);
+            temp.forEach(x => {
+                x.key -= minKey;
+                opsCount.writes++;
+            });
         }
 
         for (let shift = 0; shift < 32; shift += 8) {
             let buckets = Array.from({length: 256}, () => []);
+            opsCount.writes += 256;
+            
             for (let i = 0; i < temp.length; i++) {
                 let digit = (temp[i].key >> shift) & 0xFF;
                 buckets[digit].push(temp[i]);
+                opsCount.writes++;
             }
             temp = [].concat(...buckets);
         }
@@ -378,11 +430,18 @@ function optimizedClusterTreeSort(arr, maxBucketCapacity = 64) {
         for (let i = 1; i < a.length; i++) {
             let key = a[i];
             let j = i - 1;
-            while (j >= 0 && a[j] > key) {
-                a[j + 1] = a[j];
-                j = j - 1;
+            while (j >= 0) {
+                opsCount.comparisons++;
+                if (a[j] > key) {
+                    a[j + 1] = a[j];
+                    opsCount.writes++;
+                    j = j - 1;
+                } else {
+                    break;
+                }
             }
             a[j + 1] = key;
+            opsCount.writes++;
         }
         return a;
     }
@@ -391,6 +450,7 @@ function optimizedClusterTreeSort(arr, maxBucketCapacity = 64) {
     function runBenchmark() {
         if (currentDataset.length === 0) generateData();
         let dataCopy = [...currentDataset];
+        const mode = document.querySelector('input[name="set-type"]:checked').value;
         
         if (['quickSort', 'mergeSort', 'heapSort', 'shellSort', 'insertionSort'].includes(selectedAlgorithm) && dataCopy.length > 15000) {
             if (selectedAlgorithm === 'insertionSort') {
@@ -399,10 +459,14 @@ function optimizedClusterTreeSort(arr, maxBucketCapacity = 64) {
             }
         }
 
+        opsCount.comparisons = 0;
+        opsCount.writes = 0;
+        lastAllocatedBuckets = 0;
+
         let t0 = performance.now();
         
         if (selectedAlgorithm === 'clusterTree') {
-            optimizedClusterTreeSort(dataCopy);
+            clusterTreeSort(dataCopy, mode);
         } else if (selectedAlgorithm === 'quickSort') {
             nativeQuickSort(dataCopy);
         } else if (selectedAlgorithm === 'mergeSort') {
@@ -415,12 +479,24 @@ function optimizedClusterTreeSort(arr, maxBucketCapacity = 64) {
             radixSort(dataCopy);
         } else if (selectedAlgorithm === 'timSort') {
             dataCopy.sort((a, b) => a - b);
+            opsCount.comparisons = Math.floor(dataCopy.length * Math.log2(dataCopy.length));
+            opsCount.writes = dataCopy.length;
         } else if (selectedAlgorithm === 'insertionSort') {
             insertionSort(dataCopy);
         }
         
         let t1 = performance.now();
-        document.getElementById('timer-display').innerText = `Execution Time: ${(t1 - t0).toFixed(2)} ms`;
+        let realDuration = t1 - t0;
+
+        let simulatedCycles = (opsCount.comparisons * 1) + (opsCount.writes * 4);
+        let simulatedMilliseconds = simulatedCycles / 3500000;
+
+        document.getElementById('real-time').innerText = realDuration.toFixed(2);
+        document.getElementById('m-time').innerText = simulatedMilliseconds.toFixed(5);
+        document.getElementById('active-buckets').innerText = lastAllocatedBuckets.toLocaleString();
+        document.getElementById('m-comp').innerText = opsCount.comparisons.toLocaleString();
+        document.getElementById('m-write').innerText = opsCount.writes.toLocaleString();
+        document.getElementById('m-total').innerText = (opsCount.comparisons + opsCount.writes).toLocaleString();
     }
 </script>
 </body>
