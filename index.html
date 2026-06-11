@@ -116,7 +116,7 @@
     <div class="card">
         <h3>Step 2: Select Algorithm & Run</h3>
         <div class="control-group">
-            <button class="btn algo-btn active" onclick="selectAlgo('clusterTree', this)">Your Cluster-Tree (Pure Power-of-2)</button>
+            <button class="btn algo-btn active" onclick="selectAlgo('clusterTree', this)">Your Cluster-Tree (Dynamic Power-of-2 + Binary Leaf)</button>
             <button class="btn algo-btn" onclick="selectAlgo('timSort', this)">TimSort (Native)</button>
             <button class="btn algo-btn" onclick="selectAlgo('quickSort', this)">Quick Sort</button>
             <button class="btn algo-btn" onclick="selectAlgo('mergeSort', this)">Merge Sort</button>
@@ -135,7 +135,7 @@
                 ⏱️ Standardized Core Run-Time: <span id="m-time">0.00000</span> ms
             </div>
             <div class="metric-line" style="font-weight: bold; color: #8e44ad; font-size: 16px; margin-bottom: 10px;">
-                🔢 Active Buckets Allocated: <span id="active-buckets">0</span> (Power of 2)
+                🔢 Active Buckets Allocated: <span id="active-buckets">0</span> (Dynamic Power of 2)
             </div>
             <hr style="border: 0; border-top: 1px solid #ccc; margin: 10px 0;">
             <div class="metric-line">➡️ Comparisons / Key-Inspections: <span id="m-comp">0</span></div>
@@ -187,7 +187,7 @@
         element.classList.add('active');
     }
 
-    // --- PURE POWER-OF-2 CLUSTER-TREE SORT ---
+    // --- DYNAMIC POWER-OF-2 MASKED CLUSTER-TREE ENGINE ---
     function clusterTreeSort(arr, mode) {
         if (arr.length <= 1) {
             lastAllocatedBuckets = 0;
@@ -208,33 +208,45 @@
             return arr;
         }
 
-        // Determine raw capacity targets
+        // 1. Calculate ideal base constraints
         let targetCount = mode === 'static' ? Math.ceil(Math.sqrt(arr.length)) : Math.ceil(range / 15);
         
-        // Mathematically lock the bucket count strictly to a Power of 2 (2, 4, 8, 16, 32, 64, 128, etc.)
+        // 2. Mathematically snap bucket totals to a pure dynamic power of 2
         let BUCKETS_COUNT = Math.pow(2, Math.ceil(Math.log2(targetCount)));
-        if (BUCKETS_COUNT < 2) BUCKETS_COUNT = 2; // Floor safety
+        if (BUCKETS_COUNT < 2) BUCKETS_COUNT = 2; 
         
-        lastAllocatedBuckets = BUCKETS_COUNT; // Pass back to display card
+        lastAllocatedBuckets = BUCKETS_COUNT;
 
         let buckets = Array.from({ length: BUCKETS_COUNT }, () => []);
         opsCount.writes += BUCKETS_COUNT;
 
-        let bucketSize = range / BUCKETS_COUNT;
+        let stepSize = range / BUCKETS_COUNT;
+        
+        // Calculate the highest bit multiplier needed for the step shifts
+        let totalSteps = Math.ceil(Math.log2(BUCKETS_COUNT));
 
-        // Distribute elements into the power-of-2 lanes
+        // 3. Dynamic Bit-Masked Binary Routing Loop
         for (let num of arr) {
-            let bucketIdx = Math.floor((num - min) / bucketSize);
-            if (bucketIdx >= BUCKETS_COUNT) bucketIdx = BUCKETS_COUNT - 1;
-            if (bucketIdx < 0) bucketIdx = 0;
-            
-            buckets[bucketIdx].push(num);
+            let idx = 0;
+
+            // Instead of static unrolled lookups, we jump downwards by powers of 2 
+            for (let s = totalSteps - 1; s >= 0; s--) {
+                let bitJump = 1 << s; // Dynamic shift matching execution tier (e.g. 128, 64, 32...)
+                opsCount.comparisons++;
+                if (num >= min + stepSize * (idx + bitJump)) {
+                    idx += bitJump;
+                }
+            }
+
+            if (idx >= BUCKETS_COUNT) idx = BUCKETS_COUNT - 1;
+
+            buckets[idx].push(num);
             opsCount.writes++;
         }
 
         let sortedResult = [];
 
-        // Run local closest-match sorting mechanics within each lane
+        // 4. Localized Leaf Binary Search Insertion Layer
         for (let b = 0; b < BUCKETS_COUNT; b++) {
             let bucket = buckets[b];
             let localSorted = [];
@@ -244,25 +256,28 @@
                     localSorted.push(num);
                     opsCount.writes++;
                 } else {
-                    let closestIdx = 0;
-                    let minDiff = Math.abs(num - localSorted[0]);
-                    opsCount.comparisons++;
-                    
-                    for (let i = 1; i < localSorted.length; i++) {
-                        let diff = Math.abs(num - localSorted[i]);
+                    let low = 0;
+                    let high = localSorted.length - 1;
+                    let targetIdx = 0;
+
+                    while (low <= high) {
+                        let mid = (low + high) >> 1;
                         opsCount.comparisons++;
-                        if (diff < minDiff) {
-                            minDiff = diff;
-                            closestIdx = i;
+                        
+                        if (localSorted[mid] === num) {
+                            targetIdx = mid;
+                            break;
+                        } else if (localSorted[mid] < num) {
+                            low = mid + 1;
+                            targetIdx = low;
+                        } else {
+                            high = mid - 1;
+                            targetIdx = mid;
                         }
                     }
-                    opsCount.comparisons++;
-                    if (num < localSorted[closestIdx]) {
-                        localSorted.splice(closestIdx, 0, num);
-                    } else {
-                        localSorted.splice(closestIdx + 1, 0, num);
-                    }
-                    opsCount.writes += (localSorted.length - closestIdx);
+
+                    localSorted.splice(targetIdx, 0, num);
+                    opsCount.writes += (localSorted.length - targetIdx);
                 }
             }
             sortedResult.push(...localSorted);
@@ -461,7 +476,6 @@
 
         opsCount.comparisons = 0;
         opsCount.writes = 0;
-        lastAllocatedBuckets = 0;
 
         let t0 = performance.now();
         
@@ -493,7 +507,7 @@
 
         document.getElementById('real-time').innerText = realDuration.toFixed(2);
         document.getElementById('m-time').innerText = simulatedMilliseconds.toFixed(5);
-        document.getElementById('active-buckets').innerText = lastAllocatedBuckets.toLocaleString();
+        document.getElementById('active-buckets').innerText = lastAllocatedBuckets.toString();
         document.getElementById('m-comp').innerText = opsCount.comparisons.toLocaleString();
         document.getElementById('m-write').innerText = opsCount.writes.toLocaleString();
         document.getElementById('m-total').innerText = (opsCount.comparisons + opsCount.writes).toLocaleString();
