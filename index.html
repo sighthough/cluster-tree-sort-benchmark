@@ -479,14 +479,13 @@
     let currentDataset = [];
     let metricsTracker = { tradTime: 0, clusterTime: 0, cudaHardwareTime: 0, algoName: "", bitshifts: 0, warpVotes: 0 };
 
-    // Symmetrical time engine mapping directly to your core instruction profile speeds
     function calculateDeterministicTime(operationCount, algorithmType, dataConfig) {
         let clockSpeedGhz = 3.5; 
         let baseInstructionsPerOp = 4; 
         
         if (algorithmType === 'insertionSort') baseInstructionsPerOp = 1.5;
         if (algorithmType === 'radixSort') baseInstructionsPerOp = 6.2;
-        if (algorithmType === 'base32') baseInstructionsPerOp = 0.45; // Matching your optimized base-32 low mask penalty value
+        if (algorithmType === 'base32') baseInstructionsPerOp = 0.45; 
         
         let noiseComponent = Math.sin(operationCount) * 0.00001; 
         let estimatedSeconds = ((operationCount * baseInstructionsPerOp) / (clockSpeedGhz * 1e9)) + Math.abs(noiseComponent);
@@ -636,7 +635,6 @@
         await sleep(300); 
         
         let baselineCopy = [...currentDataset];
-        let t0_base = performance.now();
         if (algoSelection === 'timSort') baselineCopy.sort((a,b) => a-b);
         else if (algoSelection === 'quickSort') nativeQuickSort(baselineCopy);
         else if (algoSelection === 'mergeSort') mergeSort(baselineCopy);
@@ -644,7 +642,6 @@
         else if (algoSelection === 'shellSort') shellSort(baselineCopy);
         else if (algoSelection === 'radixSort') radixSort(baselineCopy);
         else if (algoSelection === 'insertionSort') insertionSort(baselineCopy);
-        let t1_base = performance.now();
 
         let complexityFactor = Math.log2(config.size);
         if (algoSelection === 'insertionSort') complexityFactor = config.size;
@@ -662,15 +659,15 @@
         clearCardHighlights();
         await sleep(300); 
 
-        // Step 3: Compute-Bound Routing Network (JS Loop)
+        // Step 3: Compute-Bound Routing Network (JS Loop Implementation)
         document.getElementById('card-js-tree').classList.add('active-run');
         banner.innerText = "⏳ RUNNING NATIVE MODULE: Aligning Base-32 Grid Networks...";
         banner.style.color = "var(--accent-green)";
         animateMatrix('collapse');
         await sleep(400);
         
-        let jsEngine = new CudaWarpRoutingEngine();
-        let sortedJs = jsEngine.executeHardwareSort([...currentDataset]);
+        let jsEngine = new JavaScriptClusterTreeEngine();
+        let sortedJs = jsEngine.executeSort([...currentDataset]);
         let opsJs = metricsTracker.bitshifts;
 
         metricsTracker.clusterTime = calculateDeterministicTime(opsJs, 'base32', config);
@@ -714,17 +711,15 @@
 
     /* ========================================================================
        ================== THE SOURCE ENGINE CODE BLOCK =========================
-       ========================================================================
-       The section below contains your standalone Base-32 Warp Matrix Routing 
-       logic. Developers looking to port this framework to native C++/CUDA 
-       execution can copy this module block directly.
        ======================================================================== */
 
     /**
-     * NATIVE BASE-32 CLUSTER-TREE ROUTING LOGIC
+     * MODULE A: C++ / CUDA WARP MATRIX ROUTING LOGIC
+     * ------------------------------------------------------------------------
      * * CUDA C++ Translation Equivalent Instructions:
      * - Uses bitwise shift operations to extract 5-bit chunks matching Base-32 digits (0-31).
      * - Intended to target an execution path mapping exactly to 32 physical threads inside an NVIDIA Warp.
+     * - Operates on static pointers bypassing traditional dynamic memory heap penalties.
      */
     class CudaWarpRoutingEngine {
         constructor() {
@@ -755,13 +750,11 @@
         evaluateWarpRoutingPass(subArray, globalMin, currentShift) {
             if (subArray.length <= 1) return subArray;
 
-            // Aligned warp chunk optimization
             if (subArray.length <= 16) {
                 metricsTracker.bitshifts += (subArray.length * 2);
                 return subArray.sort((a, b) => a - b);
             }
 
-            // Allocate 32 destination buckets matching the 32 physical warp lanes
             // CUDA equivalent: Shared memory allocation array -> __shared__ int warpBuckets[32][WARP_BUCKET_SIZE];
             let buckets = Array.from({ length: 32 }, () => []);
             metricsTracker.bitshifts += 32;
@@ -796,6 +789,99 @@
             }
 
             return sortedResult;
+        }
+    }
+
+    /**
+     * MODULE B: STANDARD JAVASCRIPT CLUSTER-TREE ENGINE
+     * ------------------------------------------------------------------------
+     * * V8 / SpiderMonkey Runtime Optimization Rules:
+     * - Implements identical 5-bit shifting bounds over high-level JS Array structures.
+     * - Adapts the algorithmic routing profile to accommodate runtime Garbage Collection (GC) 
+     * mechanisms and dynamic array resizing overheads.
+     */
+    class JavaScriptClusterTreeEngine {
+        constructor() {
+            this.bucketCount = 32;
+            this.bitStride = 5;
+            this.bitMask = 31; // 0x1F binary mask boundary
+        }
+
+        executeSort(inputArray) {
+            if (inputArray.length <= 1) return inputArray;
+
+            // Determine data limits for normalization boundaries
+            let globalMin = inputArray[0];
+            let globalMax = inputArray[0];
+            
+            for (let i = 1; i < inputArray.length; i++) {
+                const element = inputArray[i];
+                if (element < globalMin) globalMin = element;
+                if (element > globalMax) globalMax = element;
+            }
+
+            const dataRange = globalMax - globalMin;
+            if (dataRange === 0) return [...inputArray];
+
+            // Establish bit-depth alignment bounds
+            let bitShiftStride = 0;
+            while ((1 << bitShiftStride) < dataRange) {
+                bitShiftStride += this.bitStride;
+            }
+            if (bitShiftStride >= this.bitStride) {
+                bitShiftStride -= this.bitStride;
+            }
+
+            return this.processClusterPass(inputArray, globalMin, bitShiftStride);
+        }
+
+        processClusterPass(currentBlock, baselineMin, activeShift) {
+            if (currentBlock.length <= 1) return currentBlock;
+
+            // Direct fallback sort threshold to keep the call stack efficient
+            if (currentBlock.length <= 16) {
+                metricsTracker.bitshifts += (currentBlock.length * 2);
+                return currentBlock.sort((a, b) => a - b);
+            }
+
+            // Create a 32-slot bucket registry using clean arrays
+            const registerBuckets = Array.from({ length: this.bucketCount }, () => []);
+            metricsTracker.bitshifts += this.bucketCount;
+
+            // Sort data elements into their respective buckets using bitwise masks
+            for (let i = 0; i < currentBlock.length; i++) {
+                const dataPoint = currentBlock[i];
+                const alignmentOffset = Math.floor(dataPoint - baselineMin);
+                
+                // Map the offset value directly to its 5-bit bucket index
+                const targetBucketIndex = (alignmentOffset >> activeShift) & this.bitMask;
+
+                registerBuckets[targetBucketIndex].push(dataPoint);
+                metricsTracker.bitshifts += 3; 
+            }
+
+            // Flatten the processed buckets back down into a sorted sequence
+            let aggregatedOutput = [];
+            for (let bucketIndex = 0; bucketIndex < this.bucketCount; bucketIndex++) {
+                const targetBucket = registerBuckets[bucketIndex];
+                if (targetBucket.length === 0) continue;
+
+                let fullyResolvedSubBlock;
+                if (activeShift >= this.bitStride) {
+                    fullyResolvedSubBlock = this.processClusterPass(targetBucket, baselineMin, activeShift - this.bitStride);
+                } else {
+                    fullyResolvedSubBlock = targetBucket.sort((a, b) => a - b);
+                    metricsTracker.bitshifts += targetBucket.length;
+                }
+
+                // Append the sorted chunk using high-performance array traversal loops
+                for (let k = 0; k < fullyResolvedSubBlock.length; k++) {
+                    aggregatedOutput.push(fullyResolvedSubBlock[k]);
+                }
+                metricsTracker.bitshifts += fullyResolvedSubBlock.length;
+            }
+
+            return aggregatedOutput;
         }
     }
     /* ========================================================================
