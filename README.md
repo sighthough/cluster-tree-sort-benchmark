@@ -10,4 +10,4 @@ check the index file towards the bottom for cuda and java implementation
 
 
 ---
-*Co-authored by [sighthough](https://youtu.be/UtPiUGwu-0Q) and Gemini.*
+*Co-authored by [sighthough](https://youtu.be/UtPiUGwu-0Q) and [Googles Gemini](https://www.youtube.com/shorts/R3Qo4rBgrD8).*
